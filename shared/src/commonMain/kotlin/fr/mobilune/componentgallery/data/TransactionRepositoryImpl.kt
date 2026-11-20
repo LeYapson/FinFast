@@ -4,23 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
-import fr.mobilune.componentgallery.components.TransactionUiModel
+import fr.mobilune.componentgallery.core.designsystem.components.TransactionUiModel
+import fr.mobilune.componentgallery.core.network.TransactionApi
 import fr.mobilune.componentgallery.data.db.TransactionDao
 import fr.mobilune.componentgallery.data.db.TransactionEntity
-import io.ktor.client.HttpClient
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-
-private const val TRANSACTIONS_URL = "https://simpleapi.mobilune.fr/transactions"
 
 /**
  * Source de vérité : la base Room. L'UI lit [transactions] ; [refresh] va chercher l'API,
@@ -28,8 +19,7 @@ private const val TRANSACTIONS_URL = "https://simpleapi.mobilune.fr/transactions
  */
 @OptIn(ExperimentalTime::class)
 class TransactionRepositoryImpl(
-    private val httpClient: HttpClient,
-    private val authSession: AuthSession,
+    private val transactionApi: TransactionApi,
     private val transactionDao: TransactionDao,
     private val dataStore: DataStore<Preferences>,
     private val clock: Clock,
@@ -54,38 +44,17 @@ class TransactionRepositoryImpl(
         dataStore.edit { preferences -> preferences.remove(lastUpdatedKey) }
     }
 
-    private suspend fun fetchTransactions(): List<TransactionEntity> {
-        val response = httpClient.get(TRANSACTIONS_URL) {
-            authSession.accessToken?.let(::bearerAuth)
+    private suspend fun fetchTransactions(): List<TransactionEntity> =
+        transactionApi.fetchTransactions().mapIndexed { index, transaction ->
+            TransactionEntity(
+                // Le serveur ne donne pas toujours d'identifiant : on en fabrique un, stable pour la position.
+                id = transaction.id ?: "${transaction.merchant}-${transaction.isoDate}-$index",
+                merchant = transaction.merchant,
+                isoDate = transaction.isoDate,
+                amountCents = transaction.amountCents,
+                position = index,
+            )
         }
-        if (response.status.value.isSessionRejection()) {
-            authSession.expire()
-            throw SessionExpiredException()
-        }
-        if (response.status.value !in 200..299) {
-            throw IllegalStateException("Erreur HTTP ${response.status.value} lors du chargement des transactions.")
-        }
-
-        return Json.parseToJsonElement(response.bodyAsText())
-            .jsonArray
-            .mapIndexed { index, element ->
-                val transaction = element.jsonObject
-                val merchant = transaction.getValue("marchand").jsonPrimitive.content
-                val date = transaction.getValue("date").jsonPrimitive.content
-                val amountInCents = transaction.getValue("montant_centimes").jsonPrimitive.content.toLong()
-                val id = transaction["id"]?.jsonPrimitive?.content
-                    ?.takeUnless { it == "null" }
-                    ?: "$merchant-$date-$index"
-
-                TransactionEntity(
-                    id = id,
-                    merchant = merchant,
-                    isoDate = date,
-                    amountCents = amountInCents,
-                    position = index,
-                )
-            }
-    }
 }
 
 private fun TransactionEntity.toUiModel() = TransactionUiModel(

@@ -1,5 +1,10 @@
 package fr.mobilune.componentgallery.data
 
+import fr.mobilune.componentgallery.core.network.AuthSession
+import fr.mobilune.componentgallery.core.network.PushApi
+import fr.mobilune.componentgallery.core.network.PushDevice
+import fr.mobilune.componentgallery.core.network.PushSendResult
+import fr.mobilune.componentgallery.core.network.SimulateTransactionResult
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -14,6 +19,9 @@ interface PushRepository {
         body: String,
         data: Map<String, String> = emptyMap(),
     ): PushSendResult
+
+    /** Crée une dépense aléatoire pour l'utilisateur connecté, puis le notifie (`POST /push/simulate-transaction`). */
+    suspend fun simulateTransaction(): SimulateTransactionResult
 
     /**
      * Enregistre le jeton FCM actuel de cet appareil pour l'utilisateur connecté.
@@ -51,6 +59,8 @@ class PushRepositoryImpl(
         body: String,
         data: Map<String, String>,
     ): PushSendResult = pushApi.sendPush(userId, title, body, data)
+
+    override suspend fun simulateTransaction(): SimulateTransactionResult = pushApi.simulateTransaction()
 
     override suspend fun registerCurrentDevice(): Boolean {
         val deviceToken = getDeviceToken() ?: return false

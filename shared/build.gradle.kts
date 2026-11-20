@@ -49,8 +49,9 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.cio)
+            implementation(project(":core:designsystem"))
+            // `api` : des types du réseau (ex. SimulateTransactionResult) apparaissent dans l'API publique de `shared`.
+            api(project(":core:network"))
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.koin.core)
             implementation(libs.koin.core.viewmodel)

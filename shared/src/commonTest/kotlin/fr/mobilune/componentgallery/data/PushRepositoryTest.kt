@@ -1,5 +1,10 @@
 package fr.mobilune.componentgallery.data
 
+import fr.mobilune.componentgallery.core.network.AuthSession
+import fr.mobilune.componentgallery.core.network.PushApi
+import fr.mobilune.componentgallery.core.network.PushDevice
+import fr.mobilune.componentgallery.core.network.PushSendResult
+import fr.mobilune.componentgallery.core.network.SimulateTransactionResult
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,6 +28,9 @@ private class FakePushApi : PushApi {
         body: String,
         data: Map<String, String>,
     ): PushSendResult = PushSendResult(sent = 1, failed = 0)
+
+    override suspend fun simulateTransaction(): SimulateTransactionResult =
+        SimulateTransactionResult(transactionId = "tx-1", sent = 1)
 }
 
 /** Enregistrement de l'appareil : après la connexion et à chaque nouveau jeton FCM. */

@@ -1,6 +1,6 @@
 package fr.mobilune.componentgallery
 
-import fr.mobilune.componentgallery.components.TransactionUiModel
+import fr.mobilune.componentgallery.core.designsystem.components.TransactionUiModel
 import fr.mobilune.componentgallery.data.UserProfile
 import fr.mobilune.componentgallery.viewmodel.CarteUiState
 import kotlin.test.Test

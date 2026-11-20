@@ -11,11 +11,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 import com.mmk.kmpnotifier.KMPNotifier
 import com.mmk.kmpnotifier.extensions.onCreateOrOnNewIntent
 import com.mmk.kmpnotifier.permission.AndroidPermissionUtil
-import com.mmk.kmpnotifier.push.PushListener
-import com.mmk.kmpnotifier.push.firebase.addPushListener
 import com.mmk.kmpnotifier.push.firebase.firebasePushNotifier
 import kotlinx.coroutines.launch
 import android.app.NotificationManager
@@ -40,24 +43,36 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // « Simuler une dépense dans 30 s » : WorkManager exécute l'appel même si l'app est fermée entre-temps.
+    private val transactionScheduler = object : SimulatedTransactionScheduler {
+        override val isSupported = true
+
+        override fun scheduleIn(delaySeconds: Int) {
+            val request = OneTimeWorkRequestBuilder<SimulateTransactionWorker>()
+                .setInitialDelay(delaySeconds.toLong(), TimeUnit.SECONDS)
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build()
+            WorkManager.getInstance(applicationContext).enqueue(request)
+            Log.d("PUSH", "dépense simulée programmée dans $delaySeconds s")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         initAndroidAppContext(this)
 
-        KMPNotifier.onCreateOrOnNewIntent(intent)
+        // App fermée : un clic sur une notification démarre l'activité avec les données dans l'intent.
+        // Seulement au premier démarrage : sans ça, une recréation de l'activité (savedInstanceState non nul)
+        // rejouerait ce même clic et rouvrirait « Ma carte » alors que l'utilisateur est ailleurs.
+        if (savedInstanceState == null) {
+            KMPNotifier.onCreateOrOnNewIntent(intent)
+        }
 
         // Jeton FCM dans Logcat (filtre : tag:PUSH)
         lifecycleScope.launch {
             Log.d("PUSH", "FCM token = ${KMPNotifier.firebasePushNotifier.getToken()}")
         }
-
-        // Être prévenu si le jeton change
-        KMPNotifier.addPushListener(object : PushListener {
-            override fun onNewToken(token: String) {
-                Log.d("PUSH", "onNewToken = $token")
-            }
-        })
 
         setContent {
             App(
@@ -65,6 +80,7 @@ class MainActivity : ComponentActivity() {
                 dataStoreFilePath = filesDir.resolve(PREFERENCES_FILE_NAME).absolutePath,
                 databaseFilePath = getDatabasePath(DATABASE_FILE_NAME).absolutePath,
                 notificationPermission = notificationPermission,
+                transactionScheduler = transactionScheduler,
             )
         }
     }

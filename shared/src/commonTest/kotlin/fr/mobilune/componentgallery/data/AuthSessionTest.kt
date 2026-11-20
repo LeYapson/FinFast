@@ -1,5 +1,6 @@
 package fr.mobilune.componentgallery.data
 
+import fr.mobilune.componentgallery.core.network.AuthSession
 import app.cash.turbine.test
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList

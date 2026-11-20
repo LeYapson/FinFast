@@ -1,5 +1,14 @@
 package fr.mobilune.componentgallery
 
+import fr.mobilune.componentgallery.core.designsystem.heading
+import fr.mobilune.componentgallery.core.designsystem.politeLiveRegion
+import fr.mobilune.componentgallery.core.designsystem.screenTitle
+import fr.mobilune.componentgallery.core.designsystem.ErrorText
+import fr.mobilune.componentgallery.core.designsystem.fadeTransition
+import fr.mobilune.componentgallery.core.designsystem.NfcApproachAnimation
+import fr.mobilune.componentgallery.core.designsystem.rememberAppHaptics
+import fr.mobilune.componentgallery.core.designsystem.ScanSuccessBadge
+import fr.mobilune.componentgallery.core.designsystem.ThemeConstants
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn

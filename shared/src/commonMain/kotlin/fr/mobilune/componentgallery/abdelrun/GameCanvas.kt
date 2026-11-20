@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.withTransform
-import fr.mobilune.componentgallery.AccessibilityState
+import fr.mobilune.componentgallery.core.designsystem.AccessibilityState
 import kotlin.random.Random
 
 private val DARK = Color(15, 15, 25)

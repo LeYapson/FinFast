@@ -1,5 +1,12 @@
 package fr.mobilune.componentgallery
 
+import fr.mobilune.componentgallery.core.designsystem.heading
+import fr.mobilune.componentgallery.core.designsystem.politeLiveRegion
+import fr.mobilune.componentgallery.core.designsystem.screenTitle
+import fr.mobilune.componentgallery.core.designsystem.BackIcon
+import fr.mobilune.componentgallery.core.designsystem.ErrorText
+import fr.mobilune.componentgallery.core.designsystem.IconAction
+import fr.mobilune.componentgallery.core.designsystem.ThemeConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +65,9 @@ internal fun OptionsScreen(
     push: PushUiState,
     onEnableNotifications: () -> Unit,
     onSendTestPush: () -> Unit,
+    onSimulateTransaction: () -> Unit,
+    canScheduleTransaction: Boolean,
+    onScheduleTransaction: () -> Unit,
     onSendPushToUser: (userId: String, title: String, body: String) -> Unit,
     onRegisterDevice: () -> Unit,
     onCheckDevices: () -> Unit,
@@ -125,6 +135,9 @@ internal fun OptionsScreen(
                 push = push,
                 onEnableNotifications = onEnableNotifications,
                 onSendTestPush = onSendTestPush,
+                onSimulateTransaction = onSimulateTransaction,
+                canScheduleTransaction = canScheduleTransaction,
+                onScheduleTransaction = onScheduleTransaction,
                 onSendPushToUser = onSendPushToUser,
                 onRegisterDevice = onRegisterDevice,
                 onCheckDevices = onCheckDevices,
@@ -148,6 +161,9 @@ private fun NotificationsSection(
     push: PushUiState,
     onEnableNotifications: () -> Unit,
     onSendTestPush: () -> Unit,
+    onSimulateTransaction: () -> Unit,
+    canScheduleTransaction: Boolean,
+    onScheduleTransaction: () -> Unit,
     onSendPushToUser: (userId: String, title: String, body: String) -> Unit,
     onRegisterDevice: () -> Unit,
     onCheckDevices: () -> Unit,
@@ -217,6 +233,54 @@ private fun NotificationsSection(
             } else {
                 Text("Envoyer une notification de test")
             }
+        }
+
+        Spacer(Modifier.height(20.dp))
+        Text(
+            text = "Nouvelle dépense",
+            modifier = Modifier.heading(),
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            color = ThemeConstants.onClassicBackground,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "Le serveur crée une dépense aléatoire sur ton compte et t'envoie une notification. " +
+                "Toucher la notification ouvre « Ma carte », à jour.",
+            fontSize = 14.sp,
+            color = ThemeConstants.secondaryText,
+        )
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = onSimulateTransaction,
+            enabled = !push.isSending,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = ThemeConstants.accentBackground,
+                contentColor = ThemeConstants.onAccentBackground,
+            ),
+        ) {
+            Text("Simuler une dépense maintenant")
+        }
+        if (canScheduleTransaction) {
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onScheduleTransaction,
+                enabled = !push.isSending,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ThemeConstants.accentBackground,
+                    contentColor = ThemeConstants.onAccentBackground,
+                ),
+            ) {
+                Text("Simuler une dépense dans $SIMULATED_TRANSACTION_DELAY_SECONDS s")
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Pour tester en arrière-plan ou app fermée : appuie, puis quitte l'app avant la fin du délai.",
+                fontSize = 13.sp,
+                color = ThemeConstants.secondaryText,
+            )
         }
 
         Spacer(Modifier.height(20.dp))

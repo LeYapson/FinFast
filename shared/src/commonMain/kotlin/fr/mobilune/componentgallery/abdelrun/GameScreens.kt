@@ -31,7 +31,7 @@ import fr.mobilune.componentgallery.projects.DAILY_BONUS_CAP_CENTS
 import fr.mobilune.componentgallery.projects.RunResult
 import fr.mobilune.componentgallery.projects.formatEuros
 import fr.mobilune.componentgallery.projects.formatEurosShort
-import fr.mobilune.componentgallery.rememberAppHaptics
+import fr.mobilune.componentgallery.core.designsystem.rememberAppHaptics
 import kotlinx.coroutines.delay
 
 private val Panel = Color.Black.copy(alpha = 0.6f)

@@ -1,5 +1,19 @@
 package fr.mobilune.componentgallery
 
+import fr.mobilune.componentgallery.core.designsystem.heading
+import fr.mobilune.componentgallery.core.designsystem.screenTitle
+import fr.mobilune.componentgallery.core.designsystem.AccessibilityState
+import fr.mobilune.componentgallery.core.designsystem.BackIcon
+import fr.mobilune.componentgallery.core.designsystem.ErrorText
+import fr.mobilune.componentgallery.core.designsystem.fadeTransition
+import fr.mobilune.componentgallery.core.designsystem.highContrastColorScheme
+import fr.mobilune.componentgallery.core.designsystem.IconAction
+import fr.mobilune.componentgallery.core.designsystem.LoadingIndicator
+import fr.mobilune.componentgallery.core.designsystem.MoreIcon
+import fr.mobilune.componentgallery.core.designsystem.NfcPayPanel
+import fr.mobilune.componentgallery.core.designsystem.rememberAppHaptics
+import fr.mobilune.componentgallery.core.designsystem.slideFadeIn
+import fr.mobilune.componentgallery.core.designsystem.ThemeConstants
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -47,6 +61,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,11 +70,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import fr.mobilune.componentgallery.components.AmountProjectCard
-import fr.mobilune.componentgallery.components.BudgetCard
-import fr.mobilune.componentgallery.components.CreditCard
-import fr.mobilune.componentgallery.components.StableAmountCard
-import fr.mobilune.componentgallery.components.TransactionList
+import fr.mobilune.componentgallery.core.designsystem.components.AmountProjectCard
+import fr.mobilune.componentgallery.core.designsystem.components.BudgetCard
+import fr.mobilune.componentgallery.core.designsystem.components.CreditCard
+import fr.mobilune.componentgallery.core.designsystem.components.StableAmountCard
+import fr.mobilune.componentgallery.core.designsystem.components.TransactionList
+import fr.mobilune.componentgallery.data.PushEvents
 import fr.mobilune.componentgallery.di.appModule
 import fr.mobilune.componentgallery.projects.ProjectsRoot
 import fr.mobilune.componentgallery.viewmodel.ProjectsViewModel
@@ -87,13 +103,35 @@ fun App(
     dataStoreFilePath: String = PREFERENCES_FILE_NAME,
     databaseFilePath: String = DATABASE_FILE_NAME,
     notificationPermission: NotificationPermissionAccess = NotificationPermissionAccess.Unsupported,
+    transactionScheduler: SimulatedTransactionScheduler = SimulatedTransactionScheduler.Unsupported,
 ) {
     KoinApplication(
         configuration = koinConfiguration {
             modules(appModule(dataStoreFilePath, databaseFilePath))
         },
     ) {
-        AuthenticatedApp(onExit, notificationPermission)
+        AuthenticatedApp(onExit, notificationPermission, transactionScheduler)
+    }
+}
+
+/**
+ * Écoute les notifications de nouvelle dépense, uniquement tant que l'utilisateur est connecté :
+ * un clic reçu avant la connexion (ou pendant la restauration de la session) attend dans [PushEvents].
+ */
+@Composable
+private fun NotificationEventsHandler(onOpenCard: () -> Unit) {
+    // Même instance que celle de l'accueil et de « Ma carte » : les écrans se mettent à jour d'eux-mêmes.
+    val cardViewModel: CarteViewModel = koinViewModel()
+    val currentOnOpenCard by rememberUpdatedState(onOpenCard)
+
+    LaunchedEffect(Unit) {
+        PushEvents.newTransactions.collect { cardViewModel.loadDashboard() }
+    }
+    LaunchedEffect(Unit) {
+        PushEvents.openCardRequests.collect {
+            currentOnOpenCard()
+            cardViewModel.loadDashboard()
+        }
     }
 }
 
@@ -110,7 +148,11 @@ private fun AuthRoute.isLoggedIn(): Boolean = when (this) {
 }
 
 @Composable
-private fun AuthenticatedApp(onExit: () -> Unit, notificationPermission: NotificationPermissionAccess) {
+private fun AuthenticatedApp(
+    onExit: () -> Unit,
+    notificationPermission: NotificationPermissionAccess,
+    transactionScheduler: SimulatedTransactionScheduler,
+) {
     val authViewModel: AuthViewModel = koinViewModel()
     val authState by authViewModel.uiState.collectAsState()
     val settingsViewModel: SettingsViewModel = koinViewModel()
@@ -124,6 +166,11 @@ private fun AuthenticatedApp(onExit: () -> Unit, notificationPermission: Notific
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) pushViewModel.registerDevice()
     }
+    // Notification « nouvelle dépense » : recharge la liste (app ouverte) ou ouvre « Ma carte » (clic).
+    if (isLoggedIn) {
+        NotificationEventsHandler(onOpenCard = authViewModel::showTransactionHistory)
+    }
+
     // Le jeton FCM a changé (onNewToken) : on le réenregistre.
     DisposableEffect(pushViewModel) {
         val stopObserving = observePushTokens(pushViewModel::onNewToken)
@@ -259,6 +306,12 @@ private fun AuthenticatedApp(onExit: () -> Unit, notificationPermission: Notific
                         notificationPermission.request(pushViewModel::onPermissionResult)
                     },
                     onSendTestPush = pushViewModel::sendTestPush,
+                    onSimulateTransaction = pushViewModel::simulateTransaction,
+                    canScheduleTransaction = transactionScheduler.isSupported,
+                    onScheduleTransaction = {
+                        transactionScheduler.scheduleIn(SIMULATED_TRANSACTION_DELAY_SECONDS)
+                        pushViewModel.onTransactionScheduled(SIMULATED_TRANSACTION_DELAY_SECONDS)
+                    },
                     onSendPushToUser = pushViewModel::sendPushToUser,
                     onRegisterDevice = { pushViewModel.registerDevice(manual = true) },
                     onCheckDevices = pushViewModel::checkRegisteredDevices,

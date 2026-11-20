@@ -8,14 +8,11 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import fr.mobilune.componentgallery.data.INFAST_AID_HEX
 import fr.mobilune.componentgallery.data.VIRTUAL_CARD_AID_HEX
 import fr.mobilune.componentgallery.data.VIRTUAL_CARD_SELECT_MARKER
-import fr.mobilune.componentgallery.data.AccessTokenStore
+import fr.mobilune.componentgallery.core.network.AccessTokenStore
 import fr.mobilune.componentgallery.data.db.AppDatabase
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -94,9 +91,6 @@ actual fun createAppDatabase(databaseFilePath: String): AppDatabase =
 actual fun SystemBackHandler(enabled: Boolean, onBack: () -> Unit) {
     androidx.activity.compose.BackHandler(enabled = enabled, onBack = onBack)
 }
-
-actual fun formatLastUpdate(epochMillis: Long): String =
-    SimpleDateFormat("d MMM yyyy 'à' HH:mm", Locale.FRANCE).format(Date(epochMillis))
 
 private class AndroidAccessTokenStore(
     private val dataStore: DataStore<Preferences>,

@@ -1,6 +1,6 @@
 package fr.mobilune.componentgallery.data
 
-import fr.mobilune.componentgallery.components.TransactionUiModel
+import fr.mobilune.componentgallery.core.designsystem.components.TransactionUiModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

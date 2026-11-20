@@ -2,9 +2,9 @@ package fr.mobilune.componentgallery.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.mobilune.componentgallery.components.TransactionUiModel
+import fr.mobilune.componentgallery.core.designsystem.components.TransactionUiModel
 import fr.mobilune.componentgallery.data.AuthRepository
-import fr.mobilune.componentgallery.data.AuthSession
+import fr.mobilune.componentgallery.core.network.AuthSession
 import fr.mobilune.componentgallery.data.TransactionRepository
 import fr.mobilune.componentgallery.data.UserProfile
 import kotlinx.coroutines.CancellationException

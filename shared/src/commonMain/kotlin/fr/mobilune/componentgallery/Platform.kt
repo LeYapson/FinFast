@@ -3,7 +3,7 @@ package fr.mobilune.componentgallery
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.compose.runtime.Composable
-import fr.mobilune.componentgallery.data.AccessTokenStore
+import fr.mobilune.componentgallery.core.network.AccessTokenStore
 import fr.mobilune.componentgallery.data.db.AppDatabase
 
 interface Platform {
@@ -20,8 +20,6 @@ expect fun getPreferencesDataStore(dataStoreFilePath: String): DataStore<Prefere
 expect fun createAccessTokenStore(dataStore: DataStore<Preferences>): AccessTokenStore
 
 expect fun createAppDatabase(databaseFilePath: String): AppDatabase
-
-expect fun formatLastUpdate(epochMillis: Long): String
 
 /** Bouton / geste « retour » du système. Sans effet sur desktop. */
 @Composable

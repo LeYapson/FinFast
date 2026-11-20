@@ -2,9 +2,9 @@ package fr.mobilune.componentgallery.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.mobilune.componentgallery.data.PushDevice
+import fr.mobilune.componentgallery.core.network.PushDevice
 import fr.mobilune.componentgallery.data.PushRepository
-import fr.mobilune.componentgallery.data.SessionExpiredException
+import fr.mobilune.componentgallery.core.network.SessionExpiredException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -62,6 +62,30 @@ class PushViewModel(
                 "Notification envoyée. Elle devrait arriver dans un instant." to false
             } else {
                 "Le serveur n'a pas pu envoyer la notification (échecs : ${result.failed})." to true
+            }
+        }
+    }
+
+    /** Une dépense simulée vient d'être programmée en arrière-plan : on explique quoi faire pendant l'attente. */
+    fun onTransactionScheduled(delaySeconds: Int) {
+        mutableUiState.update {
+            it.copy(
+                message = "Dépense simulée programmée dans $delaySeconds s. Mets l'app en arrière-plan ou ferme-la " +
+                    "complètement (retire-la des applications récentes), puis attends la notification.",
+                isError = false,
+            )
+        }
+    }
+
+    /** `POST /push/simulate-transaction` : le serveur crée une dépense aléatoire pour moi, puis me notifie. */
+    fun simulateTransaction() {
+        launchSend {
+            val result = pushRepository.simulateTransaction()
+            if (result.sent > 0) {
+                "Dépense simulée (n° ${result.transactionId}). Notification envoyée à ${result.sent} appareil(s)." to false
+            } else {
+                "Dépense simulée (n° ${result.transactionId}), mais aucun appareil enregistré : pas de notification. " +
+                    "Utilise « Enregistrer cet appareil » ci-dessous." to true
             }
         }
     }

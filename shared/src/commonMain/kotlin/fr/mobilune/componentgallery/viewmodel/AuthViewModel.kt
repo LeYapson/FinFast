@@ -3,7 +3,7 @@ package fr.mobilune.componentgallery.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.mobilune.componentgallery.data.AuthRepository
-import fr.mobilune.componentgallery.data.AuthSession
+import fr.mobilune.componentgallery.core.network.AuthSession
 import fr.mobilune.componentgallery.data.LastVisitedMenuRepository
 import fr.mobilune.componentgallery.data.MainMenu
 import fr.mobilune.componentgallery.data.RegisteredAccountRepository

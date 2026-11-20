@@ -52,7 +52,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import componentgallery.shared.generated.resources.Res
 import componentgallery.shared.generated.resources.abdelrun_bg_play
 import componentgallery.shared.generated.resources.abdelrun_bg_power
-import fr.mobilune.componentgallery.rememberAppHaptics
+import fr.mobilune.componentgallery.core.designsystem.rememberAppHaptics
 import org.jetbrains.compose.resources.imageResource
 
 private val HudWhite = Color.White

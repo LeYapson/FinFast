@@ -1,6 +1,6 @@
 package fr.mobilune.componentgallery.viewmodel
 
-import fr.mobilune.componentgallery.data.AuthSession
+import fr.mobilune.componentgallery.core.network.AuthSession
 import fr.mobilune.componentgallery.data.FakeAuthRepository
 import fr.mobilune.componentgallery.data.FakeTransactionRepository
 import fr.mobilune.componentgallery.data.UserProfile

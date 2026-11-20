@@ -8,7 +8,7 @@ import fr.mobilune.componentgallery.data.TransactionRepository
 import fr.mobilune.componentgallery.data.TransactionRepositoryImpl
 import fr.mobilune.componentgallery.data.AuthRepository
 import fr.mobilune.componentgallery.data.AuthRepositoryImpl
-import fr.mobilune.componentgallery.data.AuthSession
+import fr.mobilune.componentgallery.core.network.AuthSession
 import fr.mobilune.componentgallery.data.RegisteredAccountRepository
 import fr.mobilune.componentgallery.data.RegisteredAccountRepositoryImpl
 import fr.mobilune.componentgallery.createAccessTokenStore
@@ -21,8 +21,6 @@ import fr.mobilune.componentgallery.data.AccessibilityRepositoryImpl
 import fr.mobilune.componentgallery.viewmodel.CarteViewModel
 import fr.mobilune.componentgallery.viewmodel.SettingsViewModel
 import fr.mobilune.componentgallery.viewmodel.PushViewModel
-import fr.mobilune.componentgallery.data.PushApi
-import fr.mobilune.componentgallery.data.PushApiImpl
 import fr.mobilune.componentgallery.pushPlatformName
 import fr.mobilune.componentgallery.data.PushRepository
 import fr.mobilune.componentgallery.data.PushRepositoryImpl
@@ -33,9 +31,13 @@ import fr.mobilune.componentgallery.abdelrun.AbdelRunRepository
 import fr.mobilune.componentgallery.abdelrun.AbdelRunRepositoryImpl
 import fr.mobilune.componentgallery.projects.ProjectRepository
 import fr.mobilune.componentgallery.projects.ProjectRepositoryImpl
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpTimeout
+import fr.mobilune.componentgallery.core.network.AuthApi
+import fr.mobilune.componentgallery.core.network.AuthApiImpl
+import fr.mobilune.componentgallery.core.network.PushApi
+import fr.mobilune.componentgallery.core.network.PushApiImpl
+import fr.mobilune.componentgallery.core.network.TransactionApi
+import fr.mobilune.componentgallery.core.network.TransactionApiImpl
+import fr.mobilune.componentgallery.core.network.createHttpClient
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -51,17 +53,11 @@ fun appModule(dataStoreFilePath: String, databaseFilePath: String) = module {
     single { RegisteredAccountRepositoryImpl(get()) } bind RegisteredAccountRepository::class
     single { VirtualCardRepositoryImpl(get()) } bind VirtualCardRepository::class
     single { AuthSession(createAccessTokenStore(get())) }
-    single {
-        HttpClient(CIO) {
-            install(HttpTimeout) {
-                requestTimeoutMillis = 15_000
-                connectTimeoutMillis = 15_000
-                socketTimeoutMillis = 15_000
-            }
-        }
-    }
+    single { createHttpClient() }
+    single { AuthApiImpl(get(), get()) } bind AuthApi::class
+    single { TransactionApiImpl(get(), get()) } bind TransactionApi::class
     single<Clock> { Clock.System }
-    single { TransactionRepositoryImpl(get(), get(), get(), get(), get()) } bind TransactionRepository::class
+    single { TransactionRepositoryImpl(get(), get(), get(), get()) } bind TransactionRepository::class
     single { AuthRepositoryImpl(get(), get()) } bind AuthRepository::class
     viewModel { AuthViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { CarteViewModel(get(), get(), get()) }
