@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le jeton est chiffré avec une clé Keystore non sauvegardable : ne pas restaurer le DataStore ailleurs. -->
+<full-backup-content>
+    <exclude domain="file" path="preferences.preferences_pb" />
+</full-backup-content>

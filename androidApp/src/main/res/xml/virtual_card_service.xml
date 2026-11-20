@@ -1,0 +1,9 @@
+<host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/virtual_card_service"
+    android:requireDeviceUnlock="true">
+    <aid-group android:description="@string/virtual_card_service" android:category="other">
+        <aid-filter android:name="F04D4F42494C01" />
+        <!-- AID de l'app « Ma Carte » (F + INFAST) : même identifiant, renvoyé dès le SELECT. -->
+        <aid-filter android:name="F046494E46415354" />
+    </aid-group>
+</host-apdu-service>
